@@ -1,27 +1,25 @@
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
-using UnityEngine.Events;
 using System.Collections.Generic;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// Locomotion provider that allows the user to fly their rig
+    /// Locomotion provider that allows the user to fly vertically with their rig
     /// using a specified input action.
     /// </summary>
     /// <seealso cref="LocomotionProvider"/>
-    [AddComponentMenu("XR/Locomotion/Flying Provider (Action-based)", 11)]
-    public class ActionBasedFlyingProvider : MonoBehaviour
+    [AddComponentMenu("XR/Locomotion/Thruster Provider (Action-based)", 11)]
+    public class ActionBasedThrusterProvider : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("The Input System Action that will be used to read Thruster data from the controller. Must be a Value Vector3 Control.")]
+        [Tooltip("The Input System Action that will be used to read Thruster data from the controller. Must be a Value Touch Control.")]
         List<InputActionProperty> m_ThrusterActions;
 
         [SerializeField]
-        public Rigidbody m_Superman;
+        public float m_ThrusterMultipier = 10.0f;
 
-        [SerializeField]
-        public GameObject m_Controller;
+        private ConstantForce m_Thruster;
 
         protected void OnEnable()
         {
@@ -33,6 +31,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 thrusterAction.action.performed += ThrusterUpdate;
                 thrusterAction.action.canceled += ThrusterEnd;
             }
+            if (m_Thruster == null) m_Thruster = gameObject.AddComponent<ConstantForce>();
         }
 
         protected void OnDisable()
@@ -49,32 +48,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         private void ThrusterStart(InputAction.CallbackContext obj)
         {
-            Debug.Log("ThrusterStart");
         }
 
         private void ThrusterUpdate(InputAction.CallbackContext obj)
         {
-            var value = ReadValue();
-            Debug.Log("ThrusterUpdate: " + value);
-            value = new Vector3 { x = 0, y = 10, z = 0 };
-            m_Superman.AddForce(value);
-            
+            var value = m_ThrusterMultipier * Mathf.Sqrt(ReadValue());
+            m_Thruster.force = new Vector3(0.0f, value, 0.0f);
         }
 
         private void ThrusterEnd(InputAction.CallbackContext obj)
         {
-            Debug.Log("ThrusterEnd");
+            m_Thruster.force = Vector3.zero;
         }
 
-        protected Vector3 ReadValue()
+        protected float ReadValue()
         {
-            Vector3 r = Vector3.zero;
+            float r = 0.0f;
             foreach (InputActionProperty thrusterAction in m_ThrusterActions)
             {
-                // r = thrusterAction.action?.ReadValue<Vector3>() ?? r;
-                r = m_Controller.transform.forward;
-                Debug.Log(r);
-                r = r * 40;
+                float v = thrusterAction.action?.ReadValue<float>() ?? r;
+                if (v != 0.0f)
+                {
+                    r = v;
+                }
             }
             return r;
         }
