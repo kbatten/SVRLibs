@@ -69,7 +69,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         private void TeleportStart(InputAction.CallbackContext obj)
         {
-            Debug.Log("TeleportStart");
             m_ReadyToTeleport = false;
             m_TeleportStart.Invoke();
         }
@@ -77,7 +76,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         private void TeleportUpdate(InputAction.CallbackContext obj)
         {
             var value = ReadValue();
-            Debug.Log("TeleportUpdate: " + value);
             if (!m_ReadyToTeleport && value < m_Threshold)
             {
                 if (m_RayVisual != null) m_RayVisual.lineWidth = (1.0f - ((m_Threshold - value) / (m_Threshold - m_ViewThreshold))) * m_OriginalLineWidth;
@@ -91,7 +89,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         private void TeleportEnd(InputAction.CallbackContext obj)
         {
-            Debug.Log("TeleportEnd");
             if (m_ReadyToTeleport)
             {
                 Vector3 position;
