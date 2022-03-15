@@ -19,10 +19,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
 
         [SerializeField]
-        public TeleportationProvider m_TeleportationProvider;
-
-
-        [SerializeField]
         public XRInteractorLineVisual m_RayVisual;
 
         [SerializeField]
@@ -30,6 +26,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         
         [SerializeField]
         public float m_Threshold = 0.75f;
+
+        private TeleportationProvider m_TeleportationProvider;
 
         private bool m_ReadyToTeleport = false;
         private float m_OriginalLineWidth;
@@ -51,6 +49,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 teleportAction.action.performed += TeleportUpdate;
                 teleportAction.action.canceled += TeleportEnd;
             }
+
+            if (m_TeleportationProvider == null) m_TeleportationProvider = gameObject.AddComponent<TeleportationProvider>();
         }
 
         protected void OnDisable()
