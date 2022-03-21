@@ -50,11 +50,7 @@ XRRig Add XRRig Add Component Thruster Provider (Action-Based)
 
 Reformable.cs
 -------------
-**An attempt to replicate Geometry Nodes from blender. Requires ProBuilder 5.0.4. Currently just a toy Based on XRBaseInteractable**
-
-Add a ProBuilder Cube to the scene
-Create a new subclass based on this and add it to the ProBuilder object, see ChairReformable.cs
-Set Interaction Layer Mask to the same Layer as the XR Ray Interactor
+**An attempt to replicate Geometry Nodes from blender. Requires ProBuilder 5.0.4.**
 
 
 ChairReformable.cs
