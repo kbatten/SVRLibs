@@ -1,6 +1,7 @@
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -18,9 +19,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             superman,
             ironman
         }
-
-        [SerializeField]
-        public GameObject m_Player;
 
         [SerializeField]
         [Tooltip("The Input System Action that will be used to read Thruster data from the controller. Must be a Value Touch Control.")]
@@ -41,6 +39,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         public float m_ThrusterMultiplier = 1.0f;
+
+        [SerializeField]
+        public XROrigin m_XROrigin;
 
         private float m_ThrusterInternalMultiplier = 20.0f;
         private ConstantForce m_Thruster;
@@ -93,18 +94,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        protected void Awake()
+        {
+            if (m_XROrigin == null)
+                m_XROrigin = FindObjectOfType<XROrigin>();
+        }
+
         private void ThrusterUpdate(InputAction.CallbackContext obj)
         {
             Vector3 direction = m_ThrusterDirection.transform.up;
-            switch (m_ThrusterStyle) {
+            switch (m_ThrusterStyle)
+            {
                 case thrusterStyle.normal:
-                    direction = m_Player.transform.rotation * m_ThrusterDirection.transform.up;
+                    direction = m_XROrigin.transform.rotation * m_ThrusterDirection.transform.up;
                     break;
                 case thrusterStyle.superman:
-                    direction = m_Player.transform.rotation * m_ThrusterDirection.transform.forward;
+                    direction = m_XROrigin.transform.rotation * m_ThrusterDirection.transform.forward;
                     break;
                 case thrusterStyle.ironman:
-                    direction = m_Player.transform.rotation * m_ThrusterDirection.transform.forward * -1;
+                    direction = m_XROrigin.transform.rotation * m_ThrusterDirection.transform.forward * -1;
                     break;
             }
             m_Thruster.force = direction * m_ThrusterInternalMultiplier * m_ThrusterMultiplier * Mathf.Sqrt(ReadValue());
@@ -138,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         protected Quaternion ReadDirectionValue()
         {
-            return  m_ThrusterDirectionAction.action?.ReadValue<Quaternion>() ?? Quaternion.identity;
+            return m_ThrusterDirectionAction.action?.ReadValue<Quaternion>() ?? Quaternion.identity;
         }
 
         protected float ReadValue()
