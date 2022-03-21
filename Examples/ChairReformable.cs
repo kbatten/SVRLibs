@@ -1,9 +1,8 @@
-using System.Collections.Generic;
 using UnityEngine.ProBuilder;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
-    public class ChairReformable : Reformable
+    public class ChairReformable : XRBaseInteractable
     {
         public float m_Width = 3.5f;
         public float m_Depth = 1.2f;
@@ -32,6 +31,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         private bool m_FirstTime = true;
         private bool m_previouslySelected = false;
 
+        private Reformable m_Object;
+        private ProBuilderMesh m_TriggerMesh;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            m_TriggerMesh = GetComponent<ProBuilderMesh>();
+            if (m_Object == null) m_Object = gameObject.AddComponent<Reformable>();
+        }
+
         public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             base.ProcessInteractable(updatePhase);
@@ -49,6 +58,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         if (m_FirstTime)
                         {
                             m_FirstTime = false;
+
+                            // Hide trigger object
+                            m_TriggerMesh.Clear();
+                            m_TriggerMesh.ToMesh();
+                            m_TriggerMesh.Refresh();
                         }
                         else
                         {
@@ -72,17 +86,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                         m_previouslySelected = true;
 
-                        m_Mesh.Clear();
+                        m_Object.Clear();
 
-                        List<ProBuilderMesh> meshes = new List<ProBuilderMesh> { m_Mesh,
+                        m_Object.Join(
                             LegMesh(),
                             BaseMesh(),
                             SideMesh(),
                             BackMesh(),
                             CushionMesh(),
                             BackCushionMesh()
-                        };
-                        GNJoinGeometry(meshes);
+                            );
                     }
                     else if (!isSelected && m_previouslySelected)
                     {
@@ -100,172 +113,172 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        private ProBuilderMesh LegMesh()
+        private Reformable LegMesh()
         {
             // New Cube
-            ProBuilderMesh mesh = GNCube(new Vector3 { x = m_LegWidth, y = m_LegHeight, z = m_LegWidth });
+            Reformable mesh = m_Object.Cube(new Vector3 { x = m_LegWidth, y = m_LegHeight, z = m_LegWidth });
 
-            mesh.SetMaterial(mesh.faces, m_LegMaterial);
+            mesh.SetMaterial(m_LegMaterial);
 
             // Transform (set on ground)
-            GNTransform(mesh, new Vector3 { x = 0, y = m_LegHeight / 2, z = 0 });
+            mesh.Transform(new Vector3 { x = 0, y = m_LegHeight / 2, z = 0 });
 
             // Set Position (coneify)
-            GNSetPosition(mesh,
+            mesh.SetPosition(
                 delegate (Vector3 v) { return v.y > 0; },
                 delegate (Vector3 v) { return new Vector3 { x = v.x * m_LegTopMultiplier, y = v.y, z = v.z * m_LegTopMultiplier }; });
 
             // Set Position (angle)
-            GNSetPosition(mesh,
+            mesh.SetPosition(
                 delegate (Vector3 v) { return v.y > 0; },
                 delegate (Vector3 v) { return new Vector3 { x = v.x + m_LegAngleCoef * m_LegHeight, y = v.y, z = v.z + m_LegAngleCoef * m_LegHeight }; });
 
             // Transform (inset)
-            GNTransform(mesh, new Vector3 { x = m_LegInset, y = 0, z = m_LegInset });
+            mesh.Transform(new Vector3 { x = m_LegInset, y = 0, z = m_LegInset });
 
             // Transform (move to corner)
-            GNTransform(mesh, new Vector3 { x = -m_Width / 2, y = 0, z = -m_Depth / 2 });
+            mesh.Transform(new Vector3 { x = -m_Width / 2, y = 0, z = -m_Depth / 2 });
 
             // Clone
-            ProBuilderMesh cloneMesh = GNCloneMesh(mesh);
+            Reformable cloneMesh = mesh.Copy();
 
             // Transform (mirror x)
-            GNTransform(cloneMesh,
+            cloneMesh.Transform(
                 delegate (Vector3 v) { return new Vector3 { x = -v.x, y = v.y, z = v.z }; });
 
             // Flip normals
-            GNFlipFaces(cloneMesh);
+            cloneMesh.FlipFaces();
 
             // Join
-            mesh = GNJoinGeometry(mesh, cloneMesh);
+            mesh.Join(cloneMesh);
 
             // Clone
-            cloneMesh = GNCloneMesh(mesh);
+            cloneMesh = mesh.Copy();
 
             // Transform (mirror z)
-            GNTransform(cloneMesh,
+            cloneMesh.Transform(
                 delegate (Vector3 v) { return new Vector3 { x = v.x, y = v.y, z = -v.z }; });
 
             // Flip normals
-            GNFlipFaces(cloneMesh);
+            cloneMesh.FlipFaces();
 
             // Join
-            mesh = GNJoinGeometry(mesh, cloneMesh);
+            mesh.Join(cloneMesh);
 
             return mesh;
         }
 
-        private ProBuilderMesh BaseMesh()
+        private Reformable BaseMesh()
         {
             // New Cube
-            ProBuilderMesh mesh = GNCube(new Vector3 { x = m_Width, y = m_BaseHeight, z = m_Depth });
+            Reformable mesh = m_Object.Cube(new Vector3 { x = m_Width, y = m_BaseHeight, z = m_Depth });
 
-            mesh.SetMaterial(mesh.faces, m_BaseMaterial);
+            mesh.SetMaterial(m_BaseMaterial);
 
             // Transform (set on legs)
-            GNTransform(mesh,
+            mesh.Transform(
                 delegate (Vector3 v) { return new Vector3 { x = v.x, y = v.y + m_LegHeight + m_BaseHeight / 2, z = v.z }; });
 
             return mesh;
         }
 
-        private ProBuilderMesh SideMesh()
+        private Reformable SideMesh()
         {
             // New Cube
-            ProBuilderMesh mesh = GNCube(new Vector3 { x = m_SideWidth, y = m_SideHeight, z = m_Depth - m_BackDepth });
+            Reformable mesh = m_Object.Cube(new Vector3 { x = m_SideWidth, y = m_SideHeight, z = m_Depth - m_BackDepth });
 
-            mesh.SetMaterial(mesh.faces, m_SideMaterial);
+            mesh.SetMaterial(m_SideMaterial);
 
             // Transform (set on base)
-            GNTransform(mesh, new Vector3 { x = 0, y = m_LegHeight + m_BaseHeight + m_SideHeight / 2, z = 0 });
+            mesh.Transform(new Vector3 { x = 0, y = m_LegHeight + m_BaseHeight + m_SideHeight / 2, z = 0 });
 
             // Transform (move to side, adjust for BackDepth)
-            GNTransform(mesh, new Vector3 { x = -m_Width / 2 + m_SideWidth / 2, y = 0, z = -m_BackDepth / 2 });
+            mesh.Transform(new Vector3 { x = -m_Width / 2 + m_SideWidth / 2, y = 0, z = -m_BackDepth / 2 });
 
             // Clone
-            ProBuilderMesh cloneMesh = GNCloneMesh(mesh);
+            Reformable cloneMesh = mesh.Copy();
 
             // Transform (mirror x)
-            GNTransform(cloneMesh,
+            mesh.Transform(
                 delegate (Vector3 v) { return new Vector3 { x = -v.x, y = v.y, z = v.z }; });
 
             // Flip normals
-            GNFlipFaces(cloneMesh);
+            mesh.FlipFaces();
 
             // Join
-            mesh = GNJoinGeometry(mesh, cloneMesh);
+            mesh.Join(cloneMesh);
 
             return mesh;
         }
 
-        private ProBuilderMesh BackMesh()
+        private Reformable BackMesh()
         {
             // New Cube
-            ProBuilderMesh mesh = GNCube(new Vector3 { x = m_Width, y = m_BackHeight, z = m_BackDepth });
+            Reformable mesh = m_Object.Cube(new Vector3 { x = m_Width, y = m_BackHeight, z = m_BackDepth });
 
-            mesh.SetMaterial(mesh.faces, m_BackMaterial);
+            mesh.SetMaterial(m_BackMaterial);
 
             // Transform (set on base)
-            GNTransform(mesh, new Vector3 { x = 0, y = m_LegHeight + m_BaseHeight + m_BackHeight / 2, z = 0 });
+            mesh.Transform(new Vector3 { x = 0, y = m_LegHeight + m_BaseHeight + m_BackHeight / 2, z = 0 });
 
             // Transform (move to back)
-            GNTransform(mesh, new Vector3 { x = 0, y = 0, z = m_Depth / 2 - m_BackDepth / 2 });
+            mesh.Transform(new Vector3 { x = 0, y = 0, z = m_Depth / 2 - m_BackDepth / 2 });
 
             return mesh;
         }
 
-        private ProBuilderMesh CushionMesh()
-        {
-            float cushionWidth = ((m_Width - (m_SideWidth * 2)) / m_CushionCount);
-
-            // New Cube
-            ProBuilderMesh mesh = GNCube(new Vector3 { x = cushionWidth, y = m_CushionHeight, z = m_Depth - m_BackDepth });
-
-            mesh.SetMaterial(mesh.faces, m_CushionMaterial);
-
-            // Transform (set on base)
-            GNTransform(mesh, new Vector3 { x = 0, y = m_LegHeight + m_BaseHeight + m_CushionHeight / 2, z = 0 });
-
-            // Transform (move to side)
-            GNTransform(mesh, new Vector3 { x = cushionWidth * (m_CushionCount - 1) / -2, y = 0, z = 0 });
-
-            // Array
-            Vector3 stride = new Vector3 { x = cushionWidth, y = 0, z = 0 };
-            GNArray(mesh, m_CushionCount, stride);
-
-            // Transform (move to back)
-            GNTransform(mesh, new Vector3 { x = 0, y = 0, z = -m_BackDepth / 2 });
-
-            // Bevel
-            GNBevel(mesh, m_CushionBevel);
-
-            return mesh;
-        }
-
-        private ProBuilderMesh BackCushionMesh()
+        private Reformable CushionMesh()
         {
             float cushionWidth = ((m_Width - (m_SideWidth * 2)) / m_CushionCount);
 
             // New Cube
-            ProBuilderMesh mesh = GNCube(new Vector3 { x = cushionWidth, y = m_BackHeight - m_CushionHeight, z = m_BackCushionDepth });
+            Reformable mesh = m_Object.Cube(new Vector3 { x = cushionWidth, y = m_CushionHeight, z = m_Depth - m_BackDepth });
 
-            mesh.SetMaterial(mesh.faces, m_BackCushionMaterial);
+            mesh.SetMaterial(m_CushionMaterial);
 
             // Transform (set on base)
-            GNTransform(mesh, new Vector3 { x = 0, y = m_LegHeight + m_BaseHeight + m_CushionHeight + (m_BackHeight - m_CushionHeight) / 2, z = 0 });
+            mesh.Transform(new Vector3 { x = 0, y = m_LegHeight + m_BaseHeight + m_CushionHeight / 2, z = 0 });
 
             // Transform (move to side)
-            GNTransform(mesh, new Vector3 { x = cushionWidth * (m_CushionCount - 1) / -2, y = 0, z = 0 });
-
-            // Transform (move to back)
-            GNTransform(mesh, new Vector3 { x = 0, y = 0, z = m_Depth / 2 - m_BackDepth - m_BackCushionDepth / 2 });
-
-            // Bevel
-            GNBevel(mesh, m_CushionBevel);
+            mesh.Transform(new Vector3 { x = cushionWidth * (m_CushionCount - 1) / -2, y = 0, z = 0 });
 
             // Array
             Vector3 stride = new Vector3 { x = cushionWidth, y = 0, z = 0 };
-            GNArray(mesh, m_CushionCount, stride);
+            mesh.Array(m_CushionCount, stride);
+
+            // Transform (move to back)
+            mesh.Transform(new Vector3 { x = 0, y = 0, z = -m_BackDepth / 2 });
+
+            // Bevel
+            mesh.Bevel(m_CushionBevel);
+
+            return mesh;
+        }
+
+        private Reformable BackCushionMesh()
+        {
+            float cushionWidth = ((m_Width - (m_SideWidth * 2)) / m_CushionCount);
+
+            // New Cube
+            Reformable mesh = m_Object.Cube(new Vector3 { x = cushionWidth, y = m_BackHeight - m_CushionHeight, z = m_BackCushionDepth });
+
+            mesh.SetMaterial(m_BackCushionMaterial);
+
+            // Transform (set on base)
+            mesh.Transform(new Vector3 { x = 0, y = m_LegHeight + m_BaseHeight + m_CushionHeight + (m_BackHeight - m_CushionHeight) / 2, z = 0 });
+
+            // Transform (move to side)
+            mesh.Transform(new Vector3 { x = cushionWidth * (m_CushionCount - 1) / -2, y = 0, z = 0 });
+
+            // Transform (move to back)
+            mesh.Transform(new Vector3 { x = 0, y = 0, z = m_Depth / 2 - m_BackDepth - m_BackCushionDepth / 2 });
+
+            // Bevel
+            mesh.Bevel(m_CushionBevel);
+
+            // Array
+            Vector3 stride = new Vector3 { x = cushionWidth, y = 0, z = 0 };
+            mesh.Array(m_CushionCount, stride);
 
             return mesh;
         }

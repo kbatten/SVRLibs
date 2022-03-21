@@ -2,61 +2,67 @@ using System.Collections.Generic;
 using UnityEngine.ProBuilder;
 using UnityEngine.ProBuilder.MeshOperations;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine
 {
-    public class Reformable : XRBaseInteractable
+    public class Reformable : MonoBehaviour
     {
         protected ProBuilderMesh m_Mesh;
 
+        public delegate bool ProcessSelectionVector3(Vector3 v);
+        public delegate Vector3 ProcessVector3(Vector3 v);
 
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-            m_Mesh = GetComponent<ProBuilderMesh>();
-        }
-
-        protected delegate bool GNSelectionVector3(Vector3 v);
-        protected delegate Vector3 GNVector3(Vector3 v);
-
-        protected ProBuilderMesh GNJoinGeometry(params ProBuilderMesh[] meshes)
-        {
-            CombineMeshes.Combine(meshes, meshes[0]);
-
-            for (int i = 1; i < meshes.Length; i++) Destroy(meshes[i].gameObject);
-
-            return meshes[0];
-        }
-
-        protected ProBuilderMesh GNJoinGeometry(List<ProBuilderMesh> meshes)
-        {
-            CombineMeshes.Combine(meshes, meshes[0]);
-
-            for (int i = 1; i < meshes.Count; i++) Destroy(meshes[i].gameObject);
-
-            return meshes[0];
-        }
-
-        protected ProBuilderMesh GNCloneMesh(ProBuilderMesh mesh)
-        {
-            mesh.ToMesh();
-            mesh.Refresh();
-            return Instantiate(mesh);
-        }
 
         // initialize with a cube, y is up
-        protected ProBuilderMesh GNCube(Vector3 size)
+        public Reformable Cube(Vector3 size)
         {
-            return ShapeGenerator.GenerateCube(PivotLocation.Center, size);
+            Reformable cube = gameObject.AddComponent<Reformable>();
+            cube.m_Mesh = ShapeGenerator.GenerateCube(PivotLocation.Center, size);
+            return cube;
         }
 
-        protected void GNTransform(ProBuilderMesh mesh, Vector3? position = null, Vector3? scale = null)
+        private void OnEnable()
+        {
+            if (m_Mesh == null) m_Mesh = GetComponent<ProBuilderMesh>();
+        }
+
+        public Reformable Copy()
+        {
+            Reformable copy = gameObject.AddComponent<Reformable>();
+            copy.m_Mesh = Instantiate(m_Mesh);
+            return copy;
+        }
+
+        public void Clear()
+        {
+            m_Mesh.Clear();
+        }
+
+        public void Join(params Reformable[] meshes)
+        {
+            ProBuilderMesh[] meshlist = new ProBuilderMesh[meshes.Length + 1];
+            meshlist[0] = m_Mesh;
+            for (int i = 0; i < meshes.Length; i++)
+            {
+                meshlist[i + 1] = meshes[i].m_Mesh;
+            }
+            CombineMeshes.Combine(meshlist, m_Mesh);
+
+            for (int i = 0; i < meshes.Length; i++) Destroy(meshes[i].m_Mesh.gameObject);
+        }
+
+        public void SetMaterial(Material material)
+        {
+            m_Mesh.SetMaterial(m_Mesh.faces, material);
+        }
+
+        public void Transform(Vector3? position = null, Vector3? scale = null)
         {
             Vector3 _position = position ?? Vector3.zero;
             Vector3 _scale = scale ?? Vector3.one;
 
-            Vertex[] vertices = mesh.GetVertices();
+            Vertex[] vertices = m_Mesh.GetVertices();
             Vector3 newPosition;
-            for (int i = 0; i < mesh.vertexCount; i++)
+            for (int i = 0; i < m_Mesh.vertexCount; i++)
             {
                 newPosition = vertices[i].position;
                 newPosition.x = (newPosition.x + _position.x) * _scale.x;
@@ -64,26 +70,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 newPosition.z = (newPosition.z + _position.z) * _scale.z;
                 vertices[i].position = newPosition;
             }
-            mesh.SetVertices(vertices);
+            m_Mesh.SetVertices(vertices);
         }
 
-        protected void GNTransform(ProBuilderMesh mesh, GNVector3 position)
+        public void Transform(ProcessVector3 position)
         {
-            Vertex[] vertices = mesh.GetVertices();
+            Vertex[] vertices = m_Mesh.GetVertices();
             Vector3 newPosition;
-            for (int i = 0; i < mesh.vertexCount; i++)
+            for (int i = 0; i < m_Mesh.vertexCount; i++)
             {
                 newPosition = position(vertices[i].position);
                 vertices[i].position = newPosition;
             }
-            mesh.SetVertices(vertices);
+            m_Mesh.SetVertices(vertices);
         }
 
-        protected void GNSetPosition(ProBuilderMesh mesh, GNSelectionVector3 selection, GNVector3 position)
+        public void SetPosition(ProcessSelectionVector3 selection, ProcessVector3 position)
         {
-            Vertex[] vertices = mesh.GetVertices();
+            Vertex[] vertices = m_Mesh.GetVertices();
             Vector3 newPosition;
-            for (int i = 0; i < mesh.vertexCount; i++)
+            for (int i = 0; i < m_Mesh.vertexCount; i++)
             {
                 if (selection(vertices[i].position))
                 {
@@ -91,36 +97,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     vertices[i].position = newPosition;
                 }
             }
-            mesh.SetVertices(vertices);
+            m_Mesh.SetVertices(vertices);
         }
 
-        protected void GNFlipFaces(ProBuilderMesh mesh)
+        public void FlipFaces()
         {
-            for (int i = 0; i < mesh.faces.Count; i++)
+            for (int i = 0; i < m_Mesh.faces.Count; i++)
             {
-                mesh.faces[i].Reverse();
+                m_Mesh.faces[i].Reverse();
             }
         }
 
-        protected void GNArray(ProBuilderMesh mesh, int count, Vector3 stride)
+        public void Array(int count, Vector3 stride)
         {
-            ProBuilderMesh[] meshes = new ProBuilderMesh[count];
-            meshes[0] = mesh;
-            for (int i = 1; i < count; i++)
+            Reformable[] meshes = new Reformable[count - 1];
+            for (int i = 0; i < count - 1; i++)
             {
-                ProBuilderMesh cloneMesh = GNCloneMesh(mesh);
-                meshes[i] = cloneMesh;
-                GNTransform(cloneMesh, i * stride);
+                meshes[i] = Copy();
+                meshes[i].Transform((i + 1) * stride);
             }
-            GNJoinGeometry(meshes);
+            Join(meshes);
         }
 
-        protected void GNBevel(ProBuilderMesh mesh, float bevel)
+        public void Bevel(float bevel)
         {
-            mesh.SetSelectedFaces(mesh.faces);
-            List<Face> faces = Bevel.BevelEdges(mesh, mesh.selectedEdges, bevel);
-            mesh.SetSelectedFaces(faces);
-            mesh.ClearSelection();
+            m_Mesh.SetSelectedFaces(m_Mesh.faces);
+            List<Face> faces = ProBuilder.MeshOperations.Bevel.BevelEdges(m_Mesh, m_Mesh.selectedEdges, bevel);
+            m_Mesh.SetSelectedFaces(faces);
+            m_Mesh.ClearSelection();
         }
     }
 }
