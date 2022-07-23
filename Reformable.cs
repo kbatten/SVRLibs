@@ -11,6 +11,26 @@ namespace UnityEngine
         public delegate bool ProcessSelectionVector3(Vector3 v);
         public delegate Vector3 ProcessVector3(Vector3 v);
 
+        private void OnEnable()
+        {
+            if (m_Mesh == null) m_Mesh = GetComponent<ProBuilderMesh>();
+            if (m_Mesh == null)
+            {
+                m_Mesh = gameObject.AddComponent<ProBuilderMesh>();
+                m_Mesh.Clear();
+            }
+        }
+
+        public void Draw()
+        {
+            Clear();
+            OnDraw();
+        }
+
+        public virtual void OnDraw()
+        {
+
+        }
 
         // initialize with a cube, y is up
         public Reformable Cube(Vector3 size)
@@ -18,11 +38,6 @@ namespace UnityEngine
             Reformable cube = gameObject.AddComponent<Reformable>();
             cube.m_Mesh = ShapeGenerator.GenerateCube(PivotLocation.Center, size);
             return cube;
-        }
-
-        private void OnEnable()
-        {
-            if (m_Mesh == null) m_Mesh = GetComponent<ProBuilderMesh>();
         }
 
         public Reformable Copy()
