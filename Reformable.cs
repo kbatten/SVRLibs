@@ -12,6 +12,8 @@ namespace UnityEngine
         public delegate bool ProcessSelectionVector3(Vector3 v);
         public delegate Vector3 ProcessVector3(Vector3 v);
 
+        private List<Reformable> children;
+
         private void OnEnable()
         {
             if (m_Mesh == null) m_Mesh = GetComponent<ProBuilderMesh>();
@@ -21,6 +23,7 @@ namespace UnityEngine
                 m_Mesh.Clear();
             }
             if (m_Collider == null) m_Collider = GetComponent<Collider>();
+            children = new List<Reformable>();
         }
 
         public void Draw()
@@ -35,7 +38,10 @@ namespace UnityEngine
             gameObject.transform.localScale = Vector3.one;
 
             m_Mesh.Clear();
+
             OnDraw();
+
+            DeleteChildren();
 
             gameObject.transform.localPosition = position;
             gameObject.transform.localRotation = rotation;
@@ -49,17 +55,31 @@ namespace UnityEngine
 
         }
 
+        private Reformable CreateChild()
+        {
+            var child = gameObject.AddComponent<Reformable>();
+            children.Add(child);
+            return child;
+        }
+
+        private void DeleteChildren(bool deleteSelf=false)
+        {
+            foreach (Reformable reformable in children) reformable.DeleteChildren(true);
+            if (deleteSelf) Destroy(this);
+            children.Clear();
+        }
+
         // initialize with a cube, y is up
         public Reformable Cube(Vector3 size)
         {
-            Reformable cube = gameObject.AddComponent<Reformable>();
+            Reformable cube = CreateChild();
             cube.m_Mesh = ShapeGenerator.GenerateCube(PivotLocation.Center, size);
             return cube;
         }
 
         public Reformable Copy()
         {
-            Reformable copy = gameObject.AddComponent<Reformable>();
+            Reformable copy = CreateChild();
             copy.m_Mesh = Instantiate(m_Mesh);
             return copy;
         }
