@@ -7,6 +7,7 @@ namespace UnityEngine
     public class Reformable : MonoBehaviour
     {
         protected ProBuilderMesh m_Mesh;
+        protected Collider m_Collider;
 
         public delegate bool ProcessSelectionVector3(Vector3 v);
         public delegate Vector3 ProcessVector3(Vector3 v);
@@ -19,12 +20,17 @@ namespace UnityEngine
                 m_Mesh = gameObject.AddComponent<ProBuilderMesh>();
                 m_Mesh.Clear();
             }
+            if (m_Collider == null) m_Collider = GetComponent<Collider>();
         }
 
         public void Draw()
         {
-            Clear();
+            if (m_Collider) m_Collider.enabled = false;
+            m_Mesh.Clear();
             OnDraw();
+            // FIX: the following breaks if gameObject is rotated
+            m_Mesh.TranslateVertices(m_Mesh.faces, gameObject.transform.position);
+            if (m_Collider) m_Collider.enabled = true;
         }
 
         public virtual void OnDraw()
@@ -45,11 +51,6 @@ namespace UnityEngine
             Reformable copy = gameObject.AddComponent<Reformable>();
             copy.m_Mesh = Instantiate(m_Mesh);
             return copy;
-        }
-
-        public void Clear()
-        {
-            m_Mesh.Clear();
         }
 
         public void Join(params Reformable[] meshes)
