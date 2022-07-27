@@ -12,7 +12,10 @@ namespace UnityEngine
         public delegate bool ProcessSelectionVector3(Vector3 v);
         public delegate Vector3 ProcessVector3(Vector3 v);
 
-        private List<Reformable> children;
+        private List<Reformable> m_Children;
+
+        [System.NonSerialized]
+        public bool degenerate = false;
 
         private void OnEnable()
         {
@@ -23,7 +26,7 @@ namespace UnityEngine
                 m_Mesh.Clear();
             }
             if (m_Collider == null) m_Collider = GetComponent<Collider>();
-            children = new List<Reformable>();
+            m_Children = new List<Reformable>();
         }
 
         public void Draw()
@@ -58,20 +61,21 @@ namespace UnityEngine
         private Reformable CreateChild()
         {
             var child = gameObject.AddComponent<Reformable>();
-            children.Add(child);
+            m_Children.Add(child);
             return child;
         }
 
         private void DeleteChildren(bool deleteSelf=false)
         {
-            foreach (Reformable reformable in children) reformable.DeleteChildren(true);
+            foreach (Reformable reformable in m_Children) reformable.DeleteChildren(true);
             if (deleteSelf) Destroy(this);
-            children.Clear();
+            m_Children.Clear();
         }
 
         // initialize with a cube, y is up
         public Reformable Cube(Vector3 size)
         {
+            if (size.x == 0 || size.y == 0 || size.z == 0) return Empty();
             Reformable cube = CreateChild();
             cube.m_Mesh = ShapeGenerator.GenerateCube(PivotLocation.Center, size);
             return cube;
@@ -82,6 +86,14 @@ namespace UnityEngine
             Reformable copy = CreateChild();
             copy.m_Mesh = Instantiate(m_Mesh);
             return copy;
+        }
+
+        public Reformable Empty()
+        {
+            var empty = CreateChild();
+            empty.m_Mesh = Instantiate(m_Mesh);
+            empty.m_Mesh.Clear();
+            return empty;
         }
 
         public void Join(params Reformable[] meshes)
