@@ -26,10 +26,21 @@ namespace UnityEngine
         public void Draw()
         {
             if (m_Collider) m_Collider.enabled = false;
+
+            Vector3 position = gameObject.transform.localPosition;
+            gameObject.transform.localPosition = Vector3.zero;
+            Quaternion rotation = gameObject.transform.localRotation;
+            gameObject.transform.localRotation = Quaternion.identity;
+            Vector3 scale = gameObject.transform.localScale;
+            gameObject.transform.localScale = Vector3.one;
+
             m_Mesh.Clear();
             OnDraw();
-            // FIX: the following breaks if gameObject is rotated
-            m_Mesh.TranslateVertices(m_Mesh.faces, gameObject.transform.position);
+
+            gameObject.transform.localPosition = position;
+            gameObject.transform.localRotation = rotation;
+            gameObject.transform.localScale = scale;
+
             if (m_Collider) m_Collider.enabled = true;
         }
 
