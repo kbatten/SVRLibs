@@ -22,17 +22,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The Input System Action that will be used to read Thruster data from the controller. Must be a Value Touch Control.")]
-        List<InputActionProperty> m_ThrusterActions;
+        List<InputActionReference> m_ThrusterActions;
 
         [SerializeField]
         [Tooltip("The Input System Action that will be used to read rotation data from the controller. Must be a Value Quaternion.")]
-        InputActionProperty m_ThrusterDirectionAction;
+        InputActionReference m_ThrusterDirectionAction;
 
         private GameObject m_ThrusterDirection;
 
         [SerializeField]
         [Tooltip("The Input System Action that will be used to read button data from the controller. Must be a Button Control.")]
-        List<InputActionProperty> m_ThrusterStyleActions;
+        List<InputActionReference> m_ThrusterStyleActions;
 
         [SerializeField]
         public thrusterStyle m_ThrusterStyle = thrusterStyle.normal;
@@ -49,23 +49,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         protected void OnEnable()
         {
-            foreach (InputActionProperty thrusterAction in m_ThrusterActions)
+            foreach (InputActionReference thrusterAction in m_ThrusterActions)
             {
-                thrusterAction.EnableDirectAction();
-
                 thrusterAction.action.performed += ThrusterUpdate;
                 thrusterAction.action.canceled += ThrusterEnd;
             }
 
-            m_ThrusterDirectionAction.EnableDirectAction();
             m_ThrusterDirectionAction.action.performed += ThrusterDirectionUpdate;
             m_ThrusterDirectionAction.action.performed += ThrusterUpdate;
             if (m_ThrusterDirection == null) m_ThrusterDirection = new GameObject();
 
-            foreach (InputActionProperty thrusterStyleAction in m_ThrusterStyleActions)
+            foreach (InputActionReference thrusterStyleAction in m_ThrusterStyleActions)
             {
-                thrusterStyleAction.EnableDirectAction();
-
                 thrusterStyleAction.action.started += ThrusterStyleStart;
             }
 
@@ -74,22 +69,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         protected void OnDisable()
         {
-            foreach (InputActionProperty thrusterAction in m_ThrusterActions)
+            foreach (InputActionReference thrusterAction in m_ThrusterActions)
             {
                 thrusterAction.action.performed -= ThrusterUpdate;
                 thrusterAction.action.canceled -= ThrusterEnd;
-
-                thrusterAction.DisableDirectAction();
             }
 
             m_ThrusterDirectionAction.action.performed -= ThrusterUpdate;
             m_ThrusterDirectionAction.action.performed -= ThrusterDirectionUpdate;
-            m_ThrusterDirectionAction.DisableDirectAction();
 
-            foreach (InputActionProperty thrusterStyleAction in m_ThrusterStyleActions)
+            foreach (InputActionReference thrusterStyleAction in m_ThrusterStyleActions)
             {
-                thrusterStyleAction.EnableDirectAction();
-
                 thrusterStyleAction.action.started -= ThrusterStyleStart;
             }
         }
@@ -152,7 +142,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected float ReadValue()
         {
             float r = 0.0f;
-            foreach (InputActionProperty thrusterAction in m_ThrusterActions)
+            foreach (InputActionReference thrusterAction in m_ThrusterActions)
             {
                 float v = thrusterAction.action?.ReadValue<float>() ?? r;
                 if (v != 0.0f)
