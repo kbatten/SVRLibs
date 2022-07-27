@@ -26,6 +26,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public Material m_CushionMaterial;
         public Material m_BackCushionMaterial;
 
+        public bool m_Randomize;
+
         private bool m_FirstTime = true;
         private bool m_previouslySelected = false;
 
@@ -61,22 +63,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
                     if (isSelected && !m_previouslySelected)
                     {
-                        m_Width = ChairReformableEntity.DefaultWidth * Random.Range(0.01f, 2);
-                        m_Depth = ChairReformableEntity.DefaultDepth * Random.Range(0.01f, 2);
-                        m_LegWidth = ChairReformableEntity.DefaultLegWidth * Random.Range(0.01f, 2);
-                        m_LegHeight = ChairReformableEntity.DefaultLegHeight * Random.Range(0.01f, 2);
-                        m_LegTopMultiplier = ChairReformableEntity.DefaultLegTopMultiplier * Random.Range(0.01f, 2);
-                        m_LegAngleCoef = ChairReformableEntity.DefaultLegAngleCoef * Random.Range(0.01f, 2);
-                        m_LegInset = ChairReformableEntity.DefaultLegInset * Random.Range(0.01f, 2);
-                        m_BaseHeight = ChairReformableEntity.DefaultBaseHeight * Random.Range(0.01f, 2);
-                        m_SideHeight = ChairReformableEntity.DefaultSideHeight * Random.Range(0.01f, 2);
-                        m_SideWidth = ChairReformableEntity.DefaultSideWidth * Random.Range(0.01f, 2);
-                        m_BackHeight = ChairReformableEntity.DefaultBackHeight * Random.Range(0.01f, 2);
-                        m_BackDepth = ChairReformableEntity.DefaultBackDepth * Random.Range(0.01f, 2);
-                        m_CushionHeight = ChairReformableEntity.DefaultCushionHeight * Random.Range(0.01f, 2);
-                        m_CushionBevel = ChairReformableEntity.DefaultCushionBevel * Random.Range(0.01f, 2);
-                        m_CushionCount = (int)(Random.Range(1, 10));
-                        m_BackCushionDepth = ChairReformableEntity.DefaultBackCushionDepth * Random.Range(0.01f, 2);
+                        if (m_Randomize)
+                        {
+                            m_Width = ChairReformableEntity.DefaultWidth * Random.Range(0.01f, 2);
+                            m_Depth = ChairReformableEntity.DefaultDepth * Random.Range(0.01f, 2);
+                            m_LegWidth = ChairReformableEntity.DefaultLegWidth * Random.Range(0.01f, 2);
+                            m_LegHeight = ChairReformableEntity.DefaultLegHeight * Random.Range(0.01f, 2);
+                            m_LegTopMultiplier = ChairReformableEntity.DefaultLegTopMultiplier * Random.Range(0.01f, 2);
+                            m_LegAngleCoef = ChairReformableEntity.DefaultLegAngleCoef * Random.Range(0.01f, 2);
+                            m_LegInset = ChairReformableEntity.DefaultLegInset * Random.Range(0.01f, 2);
+                            m_BaseHeight = ChairReformableEntity.DefaultBaseHeight * Random.Range(0.01f, 2);
+                            m_SideHeight = ChairReformableEntity.DefaultSideHeight * Random.Range(0.01f, 2);
+                            m_SideWidth = ChairReformableEntity.DefaultSideWidth * Random.Range(0.01f, 2);
+                            m_BackHeight = ChairReformableEntity.DefaultBackHeight * Random.Range(0.01f, 2);
+                            m_BackDepth = ChairReformableEntity.DefaultBackDepth * Random.Range(0.01f, 2);
+                            m_CushionHeight = ChairReformableEntity.DefaultCushionHeight * Random.Range(0.01f, 2);
+                            m_CushionBevel = ChairReformableEntity.DefaultCushionBevel * Random.Range(0.01f, 2);
+                            m_CushionCount = (int)(Random.Range(1, 10));
+                            m_BackCushionDepth = ChairReformableEntity.DefaultBackCushionDepth * Random.Range(0.01f, 2);
+                        }
 
                         Draw();
 
