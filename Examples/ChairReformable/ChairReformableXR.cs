@@ -116,6 +116,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_Entity.m_CushionBevel = m_CushionBevel;
             m_Entity.m_CushionCount = m_CushionCount;
             m_Entity.m_BackCushionDepth = m_BackCushionDepth;
+            m_Entity.m_LegMaterial = m_LegMaterial;
+            m_Entity.m_BaseMaterial = m_BaseMaterial;
+            m_Entity.m_SideMaterial = m_SideMaterial;
+            m_Entity.m_BackMaterial = m_BackMaterial;
+            m_Entity.m_CushionMaterial = m_CushionMaterial;
+            m_Entity.m_BackCushionMaterial = m_BackCushionMaterial;
 
             m_Entity.Draw();
         }
