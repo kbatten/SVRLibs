@@ -5,7 +5,7 @@ public class ChairReformableEntity : Reformable
 {
     public const float DefaultWidth = 3.5f;
     public const float DefaultDepth = 1.2f;
-    public const float DefaultLegWidth = 0.04f;
+    public const float DefaultLegWidth = 0.1f;
     public const float DefaultLegHeight = 0.3f;
     public const float DefaultLegTopMultiplier = 2;
     public const float DefaultLegAngleCoef = 0.3f;
