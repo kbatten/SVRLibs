@@ -97,7 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected void Awake()
         {
             if (m_XROrigin == null)
-                m_XROrigin = FindObjectOfType<XROrigin>();
+                m_XROrigin = FindFirstObjectByType<XROrigin>();
         }
 
         private void ThrusterUpdate(InputAction.CallbackContext obj)
