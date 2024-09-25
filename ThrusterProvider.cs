@@ -10,7 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// using a specified input action.
     /// </summary>
     /// <seealso cref="LocomotionProvider"/>
-    [AddComponentMenu("XR/Locomotion/Thruster Provider (Action-based)", 11)]
+    [AddComponentMenu("XR/Locomotion/Thruster Provider", 11)]
     public class ActionBasedThrusterProvider : MonoBehaviour
     {
         public enum thrusterStyle
